@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Pro Flappy Bird - Authentic Edition</title>
@@ -14,6 +14,7 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
+            height: -webkit-fill-available; /* Fix for iOS Safari container bugs */
             overflow: hidden;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             user-select: none;
@@ -22,15 +23,26 @@
         #gameContainer {
             position: relative;
             box-shadow: 0 0 30px rgba(0,0,0,0.7);
+            /* Scaling logic optimized to fill iPhone 12 screen perfectly */
+            height: 100%;
+            width: 100%;
+            max-width: 420px; /* Max clean mobile container bounds */
+            max-height: 920px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
         canvas {
             background: #70c5ce;
             display: block;
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: fill;
         }
         /* Settings Gear Icon with Rolling Animation */
         #settingsBtn {
             position: absolute;
-            top: 15px;
+            top: calc(15px + env(safe-area-inset-top)); /* Keeps it below iPhone Notch */
             right: 15px;
             font-size: 28px;
             cursor: pointer;
@@ -55,7 +67,7 @@
             background: rgba(0, 0, 0, 0.92);
             color: white;
             box-sizing: border-box;
-            padding: 35px 20px;
+            padding: calc(35px + env(safe-area-inset-top)) 20px 35px 20px;
             flex-direction: column;
             justify-content: space-between;
             align-items: center;
@@ -136,6 +148,7 @@
             width: 100%;
             text-align: center;
             padding-top: 10px;
+            padding-bottom: env(safe-area-inset-bottom);
         }
         .credits span {
             color: #f1c40f;
@@ -149,11 +162,13 @@
 <div id="gameContainer">
     <div id="settingsBtn">⚙️</div>
     
+    <!-- Settings Menu Modal -->
     <div id="settingsMenu">
         <div>
             <h2>SETTINGS</h2>
         </div>
 
+        <!-- Emoji Avatar Selection Grid -->
         <div class="setting-section">
             <div class="setting-label">Choose Emoji Skin</div>
             <div class="options-grid" id="emojiOptions">
@@ -164,6 +179,7 @@
             </div>
         </div>
 
+        <!-- High Score List Dashboard -->
         <div class="score-board">
             <div class="setting-label" style="color: #f1c40f;">🏆 Personal Leaderboard</div>
             <ul class="score-list" id="scoreListContainer">
@@ -180,7 +196,8 @@
         </div>
     </div>
 
-    <canvas id="gameCanvas" width="360" height="640"></canvas>
+    <!-- Responsive dimensions to capture 19.5:9 phone scales cleanly -->
+    <canvas id="gameCanvas" width="360" height="740"></canvas>
 </div>
 
 <script>
@@ -215,16 +232,16 @@ function playJumpSound() {
         osc.start();
         osc.stop(audioCtx.currentTime + 0.08);
     } catch(e) {
-        console.log("Audio waiting for interaction.");
+        console.log("Audio waiting for user gesture.");
     }
 }
 
 // Core Gameplay Constants
-const GRAVITY = 0.25;
-const JUMP = -5.5;
+const GRAVITY = 0.24;
+const JUMP = -5.4;
 const PIPE_SPEED = 2.5;
-const PIPE_GAP = 150;
-const PIPE_SPAWN_RATE = 90;
+const PIPE_GAP = 160;
+const PIPE_SPAWN_RATE = 95;
 const BORDER_WIDTH = 5;
 
 // Personal Customizations
@@ -258,9 +275,9 @@ const BackgroundEngine = {
             // Distant Mountains
             ctx.fillStyle = "#81d3bc";
             ctx.beginPath();
-            ctx.moveTo(offset + 0, 520);
-            ctx.quadraticCurveTo(offset + 90, 470, offset + 180, 520);
-            ctx.quadraticCurveTo(offset + 270, 450, offset + 360, 520);
+            ctx.moveTo(offset + 0, canvas.height - 200);
+            ctx.quadraticCurveTo(offset + 90, canvas.height - 250, offset + 180, canvas.height - 200);
+            ctx.quadraticCurveTo(offset + 270, canvas.height - 270, offset + 360, canvas.height - 200);
             ctx.lineTo(offset + 360, canvas.height);
             ctx.lineTo(offset + 0, canvas.height);
             ctx.fill();
@@ -268,9 +285,9 @@ const BackgroundEngine = {
             // Classic City Buildings Base
             ctx.fillStyle = "#9de3cb";
             const buildings = [
-                {x: 10, w: 40, h: 100}, {x: 60, w: 35, h: 140},
-                {x: 110, w: 50, h: 80}, {x: 170, w: 45, h: 160},
-                {x: 230, w: 40, h: 110}, {x: 280, w: 60, h: 70}
+                {x: 10, w: 40, h: 140}, {x: 60, w: 35, h: 190},
+                {x: 110, w: 50, h: 120}, {x: 170, w: 45, h: 220},
+                {x: 230, w: 40, h: 150}, {x: 280, w: 60, h: 100}
             ];
             buildings.forEach(b => {
                 ctx.fillRect(offset + b.x, canvas.height - b.h - 80, b.w, b.h);
@@ -297,7 +314,7 @@ const BackgroundEngine = {
 class Bird {
     constructor() {
         this.x = 80;
-        this.y = 250;
+        this.y = 300;
         this.radius = 15; 
         this.velocity = 0;
     }
@@ -306,9 +323,9 @@ class Bird {
         ctx.save();
         ctx.translate(this.x, this.y);
 
+        // Fixed Rotation Matrix: No more clipping or reversing!
         let angle = Math.min(Math.PI / 3, Math.max(-Math.PI / 7, this.velocity * 0.09));
         ctx.rotate(angle);
-        ctx.scale(-1, 1); 
 
         ctx.font = "34px serif";
         ctx.textAlign = "center";
@@ -344,7 +361,7 @@ class Pipe {
     constructor() {
         this.x = canvas.width;
         this.width = 65;
-        this.topHeight = Math.floor(Math.random() * (canvas.height - PIPE_GAP - 200)) + 60;
+        this.topHeight = Math.floor(Math.random() * (canvas.height - PIPE_GAP - 260)) + 60;
         this.bottomY = this.topHeight + PIPE_GAP;
         this.passed = false;
         this.lipHeight = 24;
@@ -530,12 +547,11 @@ renderLeaderboardUI();
 init();
 gameLoop();
 
-// --- CRITICAL OFFLINE SYSTEM INJECTION ---
-// This injects a dynamic offline fallback container that saves the file into Safari's internal data cache.
+// --- DYNAMIC OFFLINE PWA CACHE CONNECTION ---
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         const swBlob = new Blob([`
-            const CACHE_NAME = 'flappy-offline-v1';
+            const CACHE_NAME = 'flappy-offline-v2';
             self.addEventListener('install', (e) => {
                 e.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(['/'])));
             });
