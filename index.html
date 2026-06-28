@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Pro Flappy Bird - Authentic Edition</title>
     <style>
         body {
@@ -197,16 +199,13 @@ function playJumpSound() {
         if (!audioCtx) {
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         }
-        // Create components
         let osc = audioCtx.createOscillator();
         let gain = audioCtx.createGain();
         
         osc.type = "sine"; 
-        // Quick low-to-high retro frequency glide
         osc.frequency.setValueAtTime(400, audioCtx.currentTime);
         osc.frequency.exponentialRampToValueAtTime(750, audioCtx.currentTime + 0.08);
         
-        // Fast volume fadeout so it sounds like a crisp jump puff
         gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
         gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
         
@@ -216,7 +215,7 @@ function playJumpSound() {
         osc.start();
         osc.stop(audioCtx.currentTime + 0.08);
     } catch(e) {
-        console.log("Audio waiting for user click interaction.");
+        console.log("Audio waiting for interaction.");
     }
 }
 
@@ -309,7 +308,7 @@ class Bird {
 
         let angle = Math.min(Math.PI / 3, Math.max(-Math.PI / 7, this.velocity * 0.09));
         ctx.rotate(angle);
-        ctx.scale(-1, 1); // Flips left-facing emojis to correctly point forward
+        ctx.scale(-1, 1); 
 
         ctx.font = "34px serif";
         ctx.textAlign = "center";
@@ -337,7 +336,7 @@ class Bird {
 
     bounce() {
         this.velocity = JUMP;
-        playJumpSound(); // Trigger sound instantly upon click input
+        playJumpSound(); 
     }
 }
 
@@ -530,6 +529,24 @@ function gameLoop() {
 renderLeaderboardUI();
 init();
 gameLoop();
+
+// --- CRITICAL OFFLINE SYSTEM INJECTION ---
+// This injects a dynamic offline fallback container that saves the file into Safari's internal data cache.
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        const swBlob = new Blob([`
+            const CACHE_NAME = 'flappy-offline-v1';
+            self.addEventListener('install', (e) => {
+                e.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(['/'])));
+            });
+            self.addEventListener('fetch', (e) => {
+                e.respondWith(caches.match(e.request).then((res) => res || fetch(e.request)));
+            });
+        `], { type: 'application/javascript' });
+        const swUrl = URL.createObjectURL(swBlob);
+        navigator.serviceWorker.register(swUrl).catch(err => console.log(err));
+    });
+}
 </script>
 </body>
 </html>
