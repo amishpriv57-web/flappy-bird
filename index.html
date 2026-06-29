@@ -14,7 +14,7 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
-            height: -webkit-fill-available; /* Fix for iOS Safari container bugs */
+            height: -webkit-fill-available;
             overflow: hidden;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             user-select: none;
@@ -23,10 +23,9 @@
         #gameContainer {
             position: relative;
             box-shadow: 0 0 30px rgba(0,0,0,0.7);
-            /* Scaling logic optimized to fill iPhone 12 screen perfectly */
             height: 100%;
             width: 100%;
-            max-width: 420px; /* Max clean mobile container bounds */
+            max-width: 420px;
             max-height: 920px;
             display: flex;
             justify-content: center;
@@ -39,10 +38,10 @@
             height: 100% !important;
             object-fit: fill;
         }
-        /* Settings Gear Icon with Rolling Animation */
+        /* Settings Gear Icon */
         #settingsBtn {
             position: absolute;
-            top: calc(15px + env(safe-area-inset-top)); /* Keeps it below iPhone Notch */
+            top: calc(15px + env(safe-area-inset-top));
             right: 15px;
             font-size: 28px;
             cursor: pointer;
@@ -64,91 +63,118 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.92);
+            background: rgba(0, 0, 0, 0.94);
             color: white;
             box-sizing: border-box;
-            padding: calc(35px + env(safe-area-inset-top)) 20px 35px 20px;
+            padding: calc(25px + env(safe-area-inset-top)) 20px 25px 20px;
             flex-direction: column;
             justify-content: space-between;
             align-items: center;
             z-index: 20;
+            overflow-y: auto;
         }
         h2 {
-            margin: 5px 0;
+            margin: 0 0 10px 0;
             letter-spacing: 2px;
             color: #2ecc71;
+            text-align: center;
         }
         .setting-section {
             width: 100%;
             text-align: center;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
         }
         .setting-label {
-            font-size: 13px;
+            font-size: 12px;
             text-transform: uppercase;
             letter-spacing: 1px;
             color: #aaa;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
         }
         .options-grid {
             display: flex;
             justify-content: center;
-            gap: 10px;
+            gap: 8px;
+            flex-wrap: wrap;
         }
         .btn {
             background: #333;
             color: white;
             border: 2px solid #555;
-            padding: 8px 14px;
+            padding: 8px 12px;
             border-radius: 6px;
             cursor: pointer;
             font-weight: bold;
+            font-size: 13px;
             transition: all 0.2s;
         }
         .btn.active {
             background: #2ecc71;
             border-color: #fff;
         }
-        /* High Scores Leaderboard Panel */
+        .btn.god-active {
+            background: #e74c3c;
+            border-color: #fff;
+            animation: pulse 1s infinite alternate;
+        }
+        @keyframes pulse {
+            from { box-shadow: 0 0 4px #e74c3c; }
+            to { box-shadow: 0 0 12px #e74c3c; }
+        }
+        /* Color dots for shape mode */
+        .color-dot {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 2px solid #555;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        .color-dot.active {
+            border-color: white;
+            transform: scale(1.2);
+        }
+        /* High Scores Panel */
         .score-board {
             background: #222;
             border: 1px solid #444;
             border-radius: 8px;
-            width: 85%;
-            padding: 12px;
+            width: 90%;
+            padding: 10px;
             text-align: center;
         }
         .score-list {
             margin: 5px 0 0 0;
             padding: 0;
             list-style: none;
-            font-size: 14px;
+            font-size: 13px;
             color: #ddd;
         }
         .score-list li {
-            padding: 4px 0;
+            padding: 3px 0;
             border-bottom: 1px dashed #333;
         }
         .score-list li:last-child {
             border-bottom: none;
         }
         #closeBtn {
-            background: #e74c3c;
+            background: #2ecc71;
             border: none;
-            width: 85%;
+            width: 90%;
             padding: 12px;
-            font-size: 16px;
+            font-size: 15px;
+            color: white;
+            margin-top: 5px;
         }
-        /* Author Credit Footer */
         .credits {
-            font-size: 14px;
+            font-size: 13px;
             color: #888;
             font-style: italic;
             border-top: 1px solid #333;
             width: 100%;
             text-align: center;
-            padding-top: 10px;
-            padding-bottom: env(safe-area-inset-bottom);
+            padding-top: 8px;
+            margin-top: 5px;
         }
         .credits span {
             color: #f1c40f;
@@ -162,24 +188,44 @@
 <div id="gameContainer">
     <div id="settingsBtn">⚙️</div>
     
-    <!-- Settings Menu Modal -->
     <div id="settingsMenu">
         <div>
             <h2>SETTINGS</h2>
         </div>
 
-        <!-- Emoji Avatar Selection Grid -->
         <div class="setting-section">
-            <div class="setting-label">Choose Emoji Skin</div>
-            <div class="options-grid" id="emojiOptions">
-                <button class="btn active" data-emoji="🐦">🐦 Bird</button>
-                <button class="btn" data-emoji="👽">👽 Alien</button>
-                <button class="btn" data-emoji="🚀">🚀 Rocket</button>
-                <button class="btn" data-emoji="👻">👻 Ghost</button>
+            <div class="setting-label" style="color: #e74c3c; font-weight: bold;">⚡ Cheat Mode</div>
+            <button class="btn" id="godModeToggle">God Mode: OFF</button>
+        </div>
+
+        <div class="setting-section">
+            <div class="setting-label">Avatar Type</div>
+            <div class="options-grid" id="avatarTypeGrid">
+                <button class="btn active" data-type="emoji">Classic Emoji</button>
+                <button class="btn" data-type="shape">Geometric Shape</button>
             </div>
         </div>
 
-        <!-- High Score List Dashboard -->
+        <div class="setting-section" id="emojiSkinSection">
+            <div class="setting-label">Choose Emoji Skin</div>
+            <div class="options-grid" id="emojiOptions">
+                <button class="btn active" data-emoji="🐦">🐦</button>
+                <button class="btn" data-emoji="👽">👽</button>
+                <button class="btn" data-emoji="🚀">🚀</button>
+                <button class="btn" data-emoji="👻">👻</button>
+            </div>
+        </div>
+
+        <div class="setting-section" id="shapeSkinSection" style="display: none;">
+            <div class="setting-label">Choose Shape Color</div>
+            <div class="options-grid" id="shapeColorOptions">
+                <div class="color-dot active" data-color="#f1c40f" style="background: #f1c40f;"></div>
+                <div class="color-dot" data-color="#e74c3c" style="background: #e74c3c;"></div>
+                <div class="color-dot" data-color="#00f3ff" style="background: #00f3ff;"></div>
+                <div class="color-dot" data-color="#e84393" style="background: #e84393;"></div>
+            </div>
+        </div>
+
         <div class="score-board">
             <div class="setting-label" style="color: #f1c40f;">🏆 Personal Leaderboard</div>
             <ul class="score-list" id="scoreListContainer">
@@ -196,7 +242,6 @@
         </div>
     </div>
 
-    <!-- Responsive dimensions to capture 19.5:9 phone scales cleanly -->
     <canvas id="gameCanvas" width="360" height="740"></canvas>
 </div>
 
@@ -208,7 +253,12 @@ const settingsBtn = document.getElementById("settingsBtn");
 const closeBtn = document.getElementById("closeBtn");
 const scoreListContainer = document.getElementById("scoreListContainer");
 
-// Audio Context Setup for Synthesized Custom Sounds
+// Custom Configuration States
+let isGodMode = false;
+let currentAvatarType = "emoji"; // "emoji" or "shape"
+let currentEmojiCharacter = "🐦";
+let currentShapeColor = "#f1c40f";
+
 let audioCtx = null;
 
 function playJumpSound() {
@@ -231,21 +281,15 @@ function playJumpSound() {
         
         osc.start();
         osc.stop(audioCtx.currentTime + 0.08);
-    } catch(e) {
-        console.log("Audio waiting for user gesture.");
-    }
+    } catch(e) {}
 }
 
-// Core Gameplay Constants
 const GRAVITY = 0.24;
 const JUMP = -5.4;
 const PIPE_SPEED = 2.5;
 const PIPE_GAP = 160;
 const PIPE_SPAWN_RATE = 95;
 const BORDER_WIDTH = 5;
-
-// Personal Customizations
-let currentEmojiCharacter = "🐦";
 
 let bird;
 let pipes = [];
@@ -272,7 +316,6 @@ const BackgroundEngine = {
         for (let loop = 0; loop < 3; loop++) {
             let offset = loop * 360;
 
-            // Distant Mountains
             ctx.fillStyle = "#81d3bc";
             ctx.beginPath();
             ctx.moveTo(offset + 0, canvas.height - 200);
@@ -282,7 +325,6 @@ const BackgroundEngine = {
             ctx.lineTo(offset + 0, canvas.height);
             ctx.fill();
 
-            // Classic City Buildings Base
             ctx.fillStyle = "#9de3cb";
             const buildings = [
                 {x: 10, w: 40, h: 140}, {x: 60, w: 35, h: 190},
@@ -297,7 +339,6 @@ const BackgroundEngine = {
                 ctx.fillStyle = "#9de3cb";
             });
 
-            // Ground Floor Strip
             ctx.fillStyle = "#ded895";
             ctx.fillRect(offset, canvas.height - 80, 360, 80);
             ctx.fillStyle = "#73bf2e";
@@ -315,7 +356,7 @@ class Bird {
     constructor() {
         this.x = 80;
         this.y = 300;
-        this.radius = 15; 
+        this.radius = 16; 
         this.velocity = 0;
     }
 
@@ -323,14 +364,41 @@ class Bird {
         ctx.save();
         ctx.translate(this.x, this.y);
 
-        // Fixed Rotation Matrix: No more clipping or reversing!
         let angle = Math.min(Math.PI / 3, Math.max(-Math.PI / 7, this.velocity * 0.09));
         ctx.rotate(angle);
 
-        ctx.font = "34px serif";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.fillText(currentEmojiCharacter, 0, 0); 
+        // Highlight custom aura effect if God Mode is on
+        if (isGodMode) {
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = "#e74c3c";
+        }
+
+        if (currentAvatarType === "emoji") {
+            ctx.font = "34px serif";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(currentEmojiCharacter, 0, 0); 
+        } else {
+            // Renders a stylized geometric retro bird shape
+            ctx.fillStyle = currentShapeColor;
+            ctx.strokeStyle = "#000";
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+
+            // Little yellow dynamic eye piece
+            ctx.fillStyle = "#fff";
+            ctx.beginPath();
+            ctx.arc(6, -4, 5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            ctx.fillStyle = "#000";
+            ctx.beginPath();
+            ctx.arc(7, -4, 2, 0, Math.PI * 2);
+            ctx.fill();
+        }
 
         ctx.restore();
     }
@@ -341,13 +409,14 @@ class Bird {
             this.y += this.velocity;
         }
 
+        // Bound collisions (God mode bypasses terminal crash exceptions)
         if (this.y + this.radius >= canvas.height - 80) {
             this.y = canvas.height - 80 - this.radius;
-            endGame();
+            if (!isGodMode) endGame();
         }
         if (this.y - this.radius <= BORDER_WIDTH) {
             this.y = BORDER_WIDTH + this.radius;
-            endGame();
+            if (!isGodMode) this.velocity = 0;
         }
     }
 
@@ -397,6 +466,7 @@ class Pipe {
     }
 
     collidesWith(bird) {
+        if (isGodMode) return false; // Immediate bypass validation checker
         if (bird.x + bird.radius > this.x - this.lipOffset && bird.x - bird.radius < this.x + this.width + this.lipOffset) {
             if (bird.y - bird.radius < this.topHeight || bird.y + bird.radius > this.bottomY) {
                 return true;
@@ -457,6 +527,7 @@ window.addEventListener("keydown", (e) => { if (e.code === "Space") handleAction
 canvas.addEventListener("touchstart", (e) => { e.preventDefault(); handleAction(); }, { passive: false });
 canvas.addEventListener("mousedown", () => { handleAction(); });
 
+// Menu Open Triggers
 settingsBtn.addEventListener("click", (e) => {
     e.stopPropagation();
     isPaused = true;
@@ -469,11 +540,49 @@ closeBtn.addEventListener("click", () => {
     settingsMenu.style.display = "none";
 });
 
+// CHEAT SYSTEM LOGIC
+const godModeToggle = document.getElementById("godModeToggle");
+godModeToggle.addEventListener("click", () => {
+    isGodMode = !isGodMode;
+    if (isGodMode) {
+        godModeToggle.innerText = "God Mode: ACTIVE";
+        godModeToggle.classList.add("god-active");
+    } else {
+        godModeToggle.innerText = "God Mode: OFF";
+        godModeToggle.classList.remove("god-active");
+    }
+});
+
+// AVATAR ALTERNATION HANDLERS
+document.getElementById("avatarTypeGrid").addEventListener("click", (e) => {
+    if (e.target.classList.contains("btn")) {
+        document.querySelectorAll("#avatarTypeGrid .btn").forEach(b => b.classList.remove("active"));
+        e.target.classList.add("active");
+        currentAvatarType = e.target.getAttribute("data-type");
+
+        if (currentAvatarType === "emoji") {
+            document.getElementById("emojiSkinSection").style.display = "block";
+            document.getElementById("shapeSkinSection").style.display = "none";
+        } else {
+            document.getElementById("emojiSkinSection").style.display = "none";
+            document.getElementById("shapeSkinSection").style.display = "block";
+        }
+    }
+});
+
 document.getElementById("emojiOptions").addEventListener("click", (e) => {
     if (e.target.classList.contains("btn")) {
         document.querySelectorAll("#emojiOptions .btn").forEach(b => b.classList.remove("active"));
         e.target.classList.add("active");
         currentEmojiCharacter = e.target.getAttribute("data-emoji");
+    }
+});
+
+document.getElementById("shapeColorOptions").addEventListener("click", (e) => {
+    if (e.target.classList.contains("color-dot")) {
+        document.querySelectorAll("#shapeColorOptions .color-dot").forEach(b => b.classList.remove("active"));
+        e.target.classList.add("active");
+        currentShapeColor = e.target.getAttribute("data-color");
     }
 });
 
@@ -547,11 +656,11 @@ renderLeaderboardUI();
 init();
 gameLoop();
 
-// --- DYNAMIC OFFLINE PWA CACHE CONNECTION ---
+// --- OFFLINE SERVICE WORKER CACHE SYSTEM ---
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         const swBlob = new Blob([`
-            const CACHE_NAME = 'flappy-offline-v2';
+            const CACHE_NAME = 'flappy-offline-v3';
             self.addEventListener('install', (e) => {
                 e.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(['/'])));
             });
